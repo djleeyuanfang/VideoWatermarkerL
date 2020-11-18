@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+{% load static %}
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <link href="{% static 'bootstrap-3.3.7-dist/css/bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet">
+</head>
+<style>
+
+</style>
+{% block css %} {% endblock %}
+<body>
+    <div class="container">
+        <div id="video-table-toolbar" class="btn-group">
+            <form class="form-inline">
+                <input type="text" class="form-control" placeholder="搜索视频" id="video-query">
+                <button class="btn btn-default" type="button" onclick="$('#video-table').bootstrapTable('refresh');">搜索</button>
+                <button id="btn_add" type="button" class="btn btn-primary" onclick="$('#uploadVideoModel').modal('show');">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>上传视频
+            </button>
+            </form>
+        </div>
+        <table id="video-table"></table>
+    </div>
+<div class="modal fade" id="uploadVideoModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">上传视频</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                      <div class="form-group">
+                        <label for="upload-video-filename">视频文件</label>
+                          <input type="file" id="upload-video-input" style="display: none" accept=".mp4,.flv">
+                          <div class="input-group">
+                              <input type="text" class="form-control" id="upload-video-filename" readonly="readonly">
+                              <span class="input-group-btn">
+                                <button class="btn btn-default" type="button" onclick="$('#upload-video-input').click()">选择</button>
+                              </span>
+                            </div>
+                      </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="upload_video()">开始上传</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+</body>
+<script src="{% static 'js/jquery-3.4.0.min.js' %}"></script>
+<script src="{% static 'bootstrap-3.3.7-dist/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/utils.js' %}"></script>
+<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
+<script src="{% static 'js/index.js' %}"></script>
+<script type="text/javascript">
+    function upload_video() {
+        if ($("#upload-video-filename").val() === ""){
+            alert("请选择视频文件");
+            return
+        }
+        let formData = new FormData();
+        formData.append("video", document.getElementById("upload-video-input").files[0]);
+        $.ajax({
+            type: 'POST',
+            url: 'upload_video',
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false
+        }).done(function (res){
+            if (res.code === 0){
+                $("#uploadVideoModel").modal("hide");
+                // 清空
+                $("#upload-video-input").val("");
+                $("#upload-video-filename").val("");
+            }else{
+                alert(res.msg)
+            }
+        }).fail(function (e) {
+            console.log(e);
+            alert("请求超时");
+        });
+    }
+    $(document).ready(function(){
+        $("#upload-video-input").on("input",function(e){
+            let l = $(this).val().split("\\");
+            $("#upload-video-filename").val(l[l.length-1]);
+        });
+    });
+</script>
+{% block js %} {% endblock %}
+</html>
